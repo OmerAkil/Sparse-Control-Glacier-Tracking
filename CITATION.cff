@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Sparse-Control Glacier Tracking"
+type: software
+version: "1.2.0-beta"
+date-released: 2026-10-05
+authors:
+  - family-names: "Akıl"
+    given-names: "Ömer"
+license: MIT
+keywords:
+  - glacier
+  - feature tracking
+  - remote sensing
+  - image matching
+  - displacement
+  - velocity
+  - strain rate
+  - MATLAB

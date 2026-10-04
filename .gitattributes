@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+*.m      text eol=lf
+*.md     text eol=lf
+*.csv    text eol=lf
+*.cff    text eol=lf
+.gitignore text eol=lf
+VERSION  text eol=lf
+LICENSE  text eol=lf
