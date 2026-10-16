@@ -368,7 +368,7 @@ atomic_writetable(SummaryTable,summaryCSV);
 manifest = struct();
 manifest.mode = "progressive";
 manifest.caseName = string(caseName);
-manifest.version = "1.2.0-beta";
+manifest.version = "1.2.1-beta";
 manifest.finalizedAt = string(datetime('now'));
 manifest.initialTrustedCount = height(Initial);
 manifest.acceptedNewCount = nAccepted;

@@ -6,7 +6,7 @@ function v1_create_case_skeleton(caseName)
 % The GUI fills raster paths, acquisition dates, and CRS after creation.
 % The user then imports trusted_correspondences.csv and source_points.csv.
 %
-% The configuration schema written here matches the v1.2.0-beta
+% The configuration schema written here matches the v1.2.1-beta
 % progressive matching and analysis backend.
 
 if nargin < 1 || strlength(string(caseName))==0
@@ -40,7 +40,7 @@ fprintf(fid,'%% case_config.m\n');
 fprintf(fid,'%% Case-specific configuration for Sparse-Control Glacier Tracking.\n\n');
 fprintf(fid,'cfg = struct();\n\n');
 
-fprintf(fid,'cfg.v1_version = ''1.2.0-beta'';\n');
+fprintf(fid,'cfg.v1_version = ''1.2.1-beta'';\n');
 fprintf(fid,'cfg.case_name = ''%s'';\n\n',caseName);
 
 fprintf(fid,'cfg.epoch1 = struct();\n');

@@ -1,5 +1,5 @@
 function V1
-% V1 - Sparse-Control Glacier Tracking v1.2.0-beta GUI.
+% V1 - Sparse-Control Glacier Tracking v1.2.1-beta GUI.
 % Place V1.m in the repository root and run: V1
 
 v1Root = fileparts(mfilename('fullpath'));
@@ -15,7 +15,7 @@ S = struct('caseName',"",'caseRoot',"", ...
     'epoch1Info',[],'epoch2Info',[], ...
     'expectedCRS',"",'epoch1Date',NaT,'epoch2Date',NaT);
 
-fig = uifigure('Name','Sparse-Control Glacier Tracking - v1.2.0-beta', ...
+fig = uifigure('Name','Sparse-Control Glacier Tracking - v1.2.1-beta', ...
     'Position',[100 80 1040 720]);
 main = uigridlayout(fig,[2 1]);
 main.RowHeight = {58,'1x'};
@@ -27,7 +27,7 @@ head.ColumnWidth = {'1x','fit','fit'};
 head.Padding = [18 10 18 8];
 uilabel(head,'Text','Sparse-Control Glacier Tracking', ...
     'FontSize',20,'FontWeight','bold');
-uilabel(head,'Text','v1.2.0-beta');
+uilabel(head,'Text','v1.2.1-beta');
 uibutton(head,'push','Text','Home','ButtonPushedFcn',@(~,~) showHome());
 
 content = uipanel(main,'BorderType','none');
@@ -1173,7 +1173,7 @@ showHome();
             if isequal(crs,projcrs(32600+z)), epsg=32600+z; return; end
             if isequal(crs,projcrs(32700+z)), epsg=32700+z; return; end
         end
-        error('Could not auto-detect EPSG for CRS "%s". v1.2.0-beta currently auto-recognizes WGS 84 UTM projected CRS.',name);
+        error('Could not auto-detect EPSG for CRS "%s". v1.2.1-beta currently auto-recognizes WGS 84 UTM projected CRS.',name);
     end
 
     function line=rasterLine(label,I)

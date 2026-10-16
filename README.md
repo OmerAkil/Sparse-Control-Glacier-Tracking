@@ -1,6 +1,6 @@
 # Sparse-Control Glacier Tracking
 
-**Version:** `1.2.0-beta`
+**Version:** `1.2.1-beta`
 
 A MATLAB workflow for deriving a **sparse horizontal glacier-displacement field** from repeat georeferenced imagery using progressive, human-validated feature tracking.
 
@@ -461,7 +461,7 @@ Large runtime data and generated products are intentionally excluded from versio
 
 ### Software regression
 
-The cleaned `v1.2.0-beta` repository was tested against a previously completed progressive glacier-tracking case.
+The cleaned `v1.2.1-beta` repository was tested against a previously completed progressive glacier-tracking case.
 
 Starting only from the saved progressive matching state, the cleaned release independently regenerated:
 
@@ -553,7 +553,7 @@ Sparse-Control-Glacier-Tracking/
 
 ## Release status
 
-`v1.2.0-beta` is a research-software release.
+`v1.2.1-beta` is a research-software release.
 
 The current release is suitable for reproducible use and further scientific evaluation, but its transferability to new glaciers and imagery regimes should be assessed rather than assumed.
 

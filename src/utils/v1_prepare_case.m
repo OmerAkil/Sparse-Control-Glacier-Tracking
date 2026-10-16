@@ -245,14 +245,12 @@ if startsWith(upper(expectedCRS),'EPSG:')
     assert(isfinite(expectedCode), ...
         'Invalid cfg.expected_crs value.');
 
-    actualCode = NaN;
-
-    if isprop(crs,'Code')
-        actualCode = double(crs.Code);
-    end
+    actualCode = resolved_epsg_code(crs);
 
     assert(isfinite(actualCode), ...
-        '%s CRS EPSG code could not be verified.',label);
+        ['%s CRS EPSG code could not be verified. ' ...
+         'Readable CRS name: %s'], ...
+        label,sig);
 
     assert(actualCode==expectedCode, ...
         '%s CRS mismatch: expected %s, found %s.', ...
@@ -275,27 +273,66 @@ end
 
 function sig = crs_signature(crs)
 
-codeText = "";
+code = resolved_epsg_code(crs);
 nameText = "";
-
-if isprop(crs,'Code')
-    code = double(crs.Code);
-
-    if isfinite(code)
-        codeText = "EPSG:" + string(code);
-    end
-end
 
 if isprop(crs,'Name')
     nameText = string(crs.Name);
 end
 
-if strlength(codeText)>0
-    sig = char(codeText);
+if isfinite(code)
+    sig = char("EPSG:" + string(code));
 elseif strlength(nameText)>0
     sig = char(nameText);
 else
     error('Could not construct CRS signature.');
+end
+
+end
+
+function code = resolved_epsg_code(crs)
+% Resolve EPSG directly when available, or from an unambiguous supported
+% WGS 84 / UTM CRS name when MATLAB omits the public Code property.
+
+code = NaN;
+
+if isprop(crs,'Code')
+    try
+        c = double(crs.Code);
+        if isscalar(c) && isfinite(c)
+            code = c;
+            return;
+        end
+    catch
+    end
+end
+
+if ~isprop(crs,'Name')
+    return;
+end
+
+name = strtrim(char(string(crs.Name)));
+
+tok = regexp( ...
+    name, ...
+    '^WGS\s*84\s*/\s*UTM\s*zone\s*(\d{1,2})\s*([NS])$', ...
+    'tokens','once','ignorecase');
+
+if isempty(tok)
+    return;
+end
+
+zone = str2double(tok{1});
+hemisphere = upper(tok{2});
+
+if ~isfinite(zone) || zone < 1 || zone > 60 || zone ~= floor(zone)
+    return;
+end
+
+if strcmp(hemisphere,'N')
+    code = 32600 + zone;
+elseif strcmp(hemisphere,'S')
+    code = 32700 + zone;
 end
 
 end

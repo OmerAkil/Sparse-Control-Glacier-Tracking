@@ -131,7 +131,7 @@ ProgressionLog = table( ...
 writetable(ProgressionLog,progressionLogCSV);
 
 state = struct();
-state.version = '1.2.0-beta';
+state.version = '1.2.1-beta';
 state.caseName = caseName;
 state.iteration = 0;
 state.initialTrustedCount = height(Trusted);
