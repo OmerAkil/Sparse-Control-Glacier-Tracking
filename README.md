@@ -160,6 +160,7 @@ Principal outputs include:
 ```text
 output/05_field_qc/
     master_correspondence_velocity_qc.csv
+    velocity_summary.csv
     close_source_pairs.csv
     delaunay_edges_sorted_longest_first.csv
     field_qc.mat
@@ -169,6 +170,19 @@ output/05_field_qc/
     04_spatial_coverage_delaunay.png
     05_speed_vs_easting.png
 ```
+
+For a readable results table, use **View Results → Velocity / QC → Open Velocity Summary CSV**.
+The summary can be generated from the saved Stage 5 results for an existing case. Its headers
+give the units and its measurement columns are rounded to two decimal places. The master QC
+table stores the full-precision values.
+
+- **Displacement (m)** is movement over the interval in `Interval_days`. The east and north
+  columns are signed components. `Displacement_Distance_m` is their horizontal magnitude.
+- **Velocity (m/year)** is the same movement divided by the interval in years.
+  `Speed_m_per_year` is the horizontal velocity magnitude.
+- **Direction (degrees)** is measured clockwise from projected grid north (0° north, 90° east).
+- **Local IDW residual (m)** is the difference between the measured displacement vector and the
+  displacement estimated from neighboring accepted points, expressed as a distance.
 
 ### Stage 6 — flow-aligned affine velocity model
 

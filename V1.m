@@ -262,8 +262,9 @@ showHome();
             'Spatial coverage / Delaunay','04_spatial_coverage_delaunay.png'; ...
             'Speed vs Easting','05_speed_vs_easting.png'};
 
-        buildResultTab(t,metrics, ...
-            fullfile(char(S.caseRoot),'output','05_field_qc'),figures);
+        fieldQcDir=fileparts(stage5Mat);
+        buildResultTab(t,metrics,fieldQcDir,figures, ...
+            @() openVelocitySummary(fieldQcDir,A5.Master,A5.dtDays));
 
         % ====================================================
         % FLOW-ALIGNED PLANE
@@ -370,7 +371,7 @@ showHome();
         note.Layout.Row=3;
     end
 
-    function buildResultTab(tab,metrics,resultDir,figures)
+    function buildResultTab(tab,metrics,resultDir,figures,onVelocitySummary)
         g=uigridlayout(tab,[1 2]);
         g.ColumnWidth={360,'1x'};
         g.Padding=[12 12 12 12];
@@ -395,6 +396,13 @@ showHome();
         b=uibutton(left,'push','Text','Open this stage output folder', ...
             'ButtonPushedFcn',@(~,~) openFolder(resultDir));
         b.Layout.Row=3;
+
+        if nargin>=5
+            left.RowHeight={28,'1x',38,38};
+            b=uibutton(left,'push','Text','Open Velocity Summary CSV', ...
+                'ButtonPushedFcn',@(~,~) onVelocitySummary());
+            b.Layout.Row=4;
+        end
 
         right=uigridlayout(g,[3 1]);
         right.Layout.Column=2;
@@ -443,6 +451,18 @@ showHome();
                     ['Figure file not found:' newline fp], ...
                     'Missing result figure');
             end
+        end
+    end
+
+    function openVelocitySummary(resultDir,Master,dtDays)
+        summaryCSV=fullfile(resultDir,'velocity_summary.csv');
+        try
+            if ~isfile(summaryCSV)
+                summaryCSV=v1_write_velocity_summary(resultDir,Master,dtDays);
+            end
+            open(summaryCSV);
+        catch ME
+            uialert(fig,ME.message,'Velocity summary unavailable');
         end
     end
 
