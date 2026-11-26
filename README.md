@@ -201,6 +201,21 @@ output/06_flow_aligned_plane/
     04_observed_vs_fitted_v_along.png
     05_partial_along_flow_gradient.png
     06_partial_cross_flow_gradient.png
+    07_gridded_velocity_map.png
+```
+
+The gridded map compares the accepted velocities and the fitted affine velocity field over the
+Epoch-1 orthomosaic, using the same arrow scale in both panels. Model arrows are sampled on an
+evenly spaced East/North grid inside the convex hull of the accepted source locations. Their
+density controls the display resolution. The fit still has one velocity observation per accepted
+match and describes a first-order trend across the controls.
+
+For an already analyzed case, select **View Results → Flow Plane → Measured vs gridded velocity**
+to export the map from the saved fit. The default spacing is one twelfth of the larger East/North
+control extent. To regenerate the map at a chosen spacing after launching V1, run for example:
+
+```matlab
+v1_plot_gridded_flow("Glacier_2025_2026",10)  % 10 m grid spacing
 ```
 
 ### Stage 7 — horizontal strain-rate analysis

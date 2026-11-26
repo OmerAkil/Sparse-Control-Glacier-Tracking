@@ -183,8 +183,8 @@ showHome();
 
     function showResults()
         % Results dashboard for completed Stages 5-8.
-        % This page reads existing scientific outputs only. It does not
-        % recompute or modify any correspondence or analysis result.
+        % Read saved analysis outputs. The gridded map can be generated
+        % from an existing fit when opened for the first time.
 
         stage5Mat=fullfile( ...
             char(S.caseRoot),'output','05_field_qc','field_qc.mat');
@@ -287,12 +287,14 @@ showHome();
             'Cross-plane R^2',sprintf('%.4f',A6.R2_cross)};
 
         figures={ ...
-            'Flow-aligned axes','01_flow_aligned_axes.png'; ...
-            '3-D v_along plane','02_v_along_plane_3D.png'; ...
-            'v_along residual map','03_v_along_plane_residual_map.png'; ...
-            'Observed vs fitted v_along','04_observed_vs_fitted_v_along.png'; ...
-            'Partial along-flow gradient','05_partial_along_flow_gradient.png'; ...
-            'Partial cross-flow gradient','06_partial_cross_flow_gradient.png'};
+            'Flow-aligned axes','01_flow_aligned_axes.png',[]; ...
+            '3-D v_along plane','02_v_along_plane_3D.png',[]; ...
+            'v_along residual map','03_v_along_plane_residual_map.png',[]; ...
+            'Observed vs fitted v_along','04_observed_vs_fitted_v_along.png',[]; ...
+            'Partial along-flow gradient','05_partial_along_flow_gradient.png',[]; ...
+            'Partial cross-flow gradient','06_partial_cross_flow_gradient.png',[]; ...
+            'Measured vs gridded velocity','07_gridded_velocity_map.png', ...
+                @() v1_plot_gridded_flow(char(S.caseName))};
 
         buildResultTab(t,metrics, ...
             fullfile(char(S.caseRoot),'output','06_flow_aligned_plane'),figures);
@@ -423,6 +425,16 @@ showHome();
             end
 
             fp=fullfile(resultDir,files{idx});
+
+            if ~isfile(fp) && size(figures,2)>=3 && ~isempty(figures{idx,3})
+                try
+                    generateFigure=figures{idx,3};
+                    generateFigure();
+                catch ME
+                    uialert(fig,ME.message,'Figure generation failed');
+                    return
+                end
+            end
 
             if isfile(fp)
                 img.ImageSource=fp;
@@ -1084,6 +1096,10 @@ showHome();
                 assert(isfile(stage5Mat) && isfile(stage6Mat) && ...
                        isfile(stage7Mat) && isfile(stage8Mat), ...
                     'Scientific analysis did not produce all expected Stage 5-8 outputs.');
+
+                dlg.Message='Exporting measured vs gridded velocity map...';
+                drawnow;
+                v1_plot_gridded_flow(char(S.caseName));
 
                 close_progress(dlg);
                 clear cleanupDlg;
