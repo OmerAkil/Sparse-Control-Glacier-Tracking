@@ -353,6 +353,7 @@ edgesCSV = fullfile( ...
     'delaunay_edges_sorted_longest_first.csv');
 
 writetable(Master,masterCSV);
+summaryCSV = v1_write_velocity_summary(outRoot,Master,dtDays);
 writetable(ClosePairs,closeCSV);
 writetable(DelaunayEdges,edgesCSV);
 
@@ -678,6 +679,7 @@ save(matOut, ...
     'localIDWPower');
 
 fprintf('\nSaved master CSV:\n%s\n',masterCSV);
+fprintf('\nSaved velocity summary CSV:\n%s\n',summaryCSV);
 fprintf('\nSaved close-pair CSV:\n%s\n',closeCSV);
 fprintf('\nSaved Delaunay-edge CSV:\n%s\n',edgesCSV);
 fprintf('\nSaved MAT:\n%s\n',matOut);

@@ -160,6 +160,7 @@ Principal outputs include:
 ```text
 output/05_field_qc/
     master_correspondence_velocity_qc.csv
+    velocity_summary.csv
     close_source_pairs.csv
     delaunay_edges_sorted_longest_first.csv
     field_qc.mat
@@ -169,6 +170,19 @@ output/05_field_qc/
     04_spatial_coverage_delaunay.png
     05_speed_vs_easting.png
 ```
+
+For a readable results table, use **View Results → Velocity / QC → Open Velocity Summary CSV**.
+The summary can be generated from the saved Stage 5 results for an existing case. Its headers
+give the units and its measurement columns are rounded to two decimal places. The master QC
+table stores the full-precision values.
+
+- **Displacement (m)** is movement over the interval in `Interval_days`. The east and north
+  columns are signed components. `Displacement_Distance_m` is their horizontal magnitude.
+- **Velocity (m/year)** is the same movement divided by the interval in years.
+  `Speed_m_per_year` is the horizontal velocity magnitude.
+- **Direction (degrees)** is measured clockwise from projected grid north (0° north, 90° east).
+- **Local IDW residual (m)** is the difference between the measured displacement vector and the
+  displacement estimated from neighboring accepted points, expressed as a distance.
 
 ### Stage 6 — flow-aligned affine velocity model
 
@@ -201,6 +215,22 @@ output/06_flow_aligned_plane/
     04_observed_vs_fitted_v_along.png
     05_partial_along_flow_gradient.png
     06_partial_cross_flow_gradient.png
+    07_gridded_velocity_speed_map.png
+```
+
+The gridded map compares the accepted velocities and the fitted affine velocity field over the
+Epoch-1 orthomosaic in Easting and Northing. Arrow length and color both represent annualized
+speed using shared scales in m/year. Model arrows are sampled on an evenly spaced East/North
+grid inside the convex hull of the accepted source locations. Their
+density controls the display resolution. The fit still has one velocity observation per accepted
+match and describes a first-order trend across the controls.
+
+For an already analyzed case, select **View Results → Flow Plane → Measured vs gridded velocity**
+to export the map from the saved fit. The default spacing is one twelfth of the larger East/North
+control extent. To regenerate the map at a chosen spacing after launching V1, run for example:
+
+```matlab
+v1_plot_gridded_flow("Glacier_2025_2026",10)  % 10 m grid spacing
 ```
 
 ### Stage 7 — horizontal strain-rate analysis
