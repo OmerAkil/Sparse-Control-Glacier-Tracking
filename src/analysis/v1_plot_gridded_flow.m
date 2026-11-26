@@ -63,6 +63,13 @@ if maxSpeed > 0
     arrowScale = referenceLength/maxSpeed;
 end
 
+% Zero is a common reference for comparing annualized speeds on either map.
+speedLimit = maxSpeed;
+if speedLimit == 0
+    speedLimit = 1;
+end
+speedColors = parula(64);
+
 f = figure('Visible','off','Color','w','Position',[80 80 1500 780]);
 cleanupFigure = onCleanup(@() close(f)); %#ok<NASGU>
 layout = tiledlayout(f,1,2,'TileSpacing','compact','Padding','compact');
@@ -76,6 +83,8 @@ for ax = [observed modeled]
     xlim(ax,xLimits);
     ylim(ax,yLimits);
     hold(ax,'on');
+    colormap(ax,speedColors);
+    clim(ax,[0 speedLimit]);
     xlabel(ax,'Easting (m)');
     ylabel(ax,'Northing (m)');
 end
@@ -84,10 +93,8 @@ hullColor = [0.13 0.16 0.20];
 plot(observed,E(hull),N(hull),'--','Color',hullColor,'LineWidth',1.2);
 hullLine = plot(modeled,E(hull),N(hull),'--','Color',hullColor,'LineWidth',1.2);
 
-observedColor = [1.00 0.76 0.19];
-modeledColor = [0.31 0.89 1.00];
-draw_arrows(observed,E,N,arrowScale*[vE vN],observedColor);
-draw_arrows(modeled,gridE,gridN,arrowScale*fittedEN,modeledColor);
+draw_arrows(observed,[E N],[vE vN],arrowScale,speedColors,speedLimit);
+draw_arrows(modeled,[gridE gridN],fittedEN,arrowScale,speedColors,speedLimit);
 
 scatter(observed,E,N,22,'w','filled','MarkerEdgeColor','k');
 sourceMarkers = scatter(modeled,E,N,22,'w','filled','MarkerEdgeColor','k');
@@ -95,27 +102,45 @@ key = legend(modeled,[sourceMarkers hullLine], ...
     {'Accepted source locations','Control convex hull'},'Orientation','horizontal');
 key.Layout.Tile = 'south';
 
-title(observed,sprintf('Accepted matches (%d vectors)',height(T)));
-title(modeled,sprintf('Affine model on a %.3g m grid (%d vectors)',gridSpacing_m,numel(gridE)));
+speedBar = colorbar(modeled);
+speedBar.Layout.Tile = 'east';
+speedBar.Label.String = 'Speed (m/yr)';
+
+title(observed,sprintf('Measured velocities (%d matches)',height(T)));
+title(modeled,sprintf('Fitted velocities (%.3g m grid)',gridSpacing_m));
 title(layout,'Annualized horizontal glacier velocity');
 if maxSpeed > 0
     layout.Subtitle.String = sprintf( ...
-        '%.0f-day interval | Same arrow scale in both panels: %.3g m/yr per %.3g m of map length', ...
-        model.dtDays,maxSpeed,referenceLength);
+        '%.0f-day interval | A %.3g m arrow represents %.3g m/yr in both panels', ...
+        model.dtDays,referenceLength,maxSpeed);
 else
     layout.Subtitle.String = sprintf( ...
         '%.0f-day interval | Fitted and measured speeds are zero',model.dtDays);
 end
 
-pngPath = fullfile(outRoot,'07_gridded_velocity_map.png');
+pngPath = fullfile(outRoot,'07_gridded_velocity_speed_map.png');
 exportgraphics(f,pngPath,'Resolution',220);
 
 end
 
-function draw_arrows(ax,E,N,components,color)
-% Use a dark outline so arrows remain visible over bright ice and shadows.
-quiver(ax,E,N,components(:,1),components(:,2),0, ...
-    'Color',[0.05 0.09 0.12],'LineWidth',2.9,'MaxHeadSize',0.55);
-quiver(ax,E,N,components(:,1),components(:,2),0, ...
-    'Color',color,'LineWidth',1.6,'MaxHeadSize',0.55);
+function draw_arrows(ax,positions,velocity,arrowScale,speedColors,speedLimit)
+% Match the shared colorbar. Quiver assigns one color to each series.
+speed = hypot(velocity(:,1),velocity(:,2));
+nColors = size(speedColors,1);
+colorIndex = min(nColors,1+floor((speed/speedLimit)*nColors));
+deltas = arrowScale*velocity;
+
+for color = unique(colorIndex).'
+    keep = colorIndex==color;
+    E = positions(keep,1);
+    N = positions(keep,2);
+    dE = deltas(keep,1);
+    dN = deltas(keep,2);
+
+    % Use the same series geometry for the outline and colored arrow.
+    quiver(ax,E,N,dE,dN,0, ...
+        'Color',[0.05 0.09 0.12],'LineWidth',2.9,'MaxHeadSize',0.55);
+    quiver(ax,E,N,dE,dN,0, ...
+        'Color',speedColors(color,:),'LineWidth',1.6,'MaxHeadSize',0.55);
+end
 end

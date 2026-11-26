@@ -201,12 +201,13 @@ output/06_flow_aligned_plane/
     04_observed_vs_fitted_v_along.png
     05_partial_along_flow_gradient.png
     06_partial_cross_flow_gradient.png
-    07_gridded_velocity_map.png
+    07_gridded_velocity_speed_map.png
 ```
 
 The gridded map compares the accepted velocities and the fitted affine velocity field over the
-Epoch-1 orthomosaic, using the same arrow scale in both panels. Model arrows are sampled on an
-evenly spaced East/North grid inside the convex hull of the accepted source locations. Their
+Epoch-1 orthomosaic in Easting and Northing. Arrow length and color both represent annualized
+speed using shared scales in m/year. Model arrows are sampled on an evenly spaced East/North
+grid inside the convex hull of the accepted source locations. Their
 density controls the display resolution. The fit still has one velocity observation per accepted
 match and describes a first-order trend across the controls.
 
