@@ -184,6 +184,42 @@ table stores the full-precision values.
 - **Local IDW residual (m)** is the difference between the measured displacement vector and the
   displacement estimated from neighboring accepted points, expressed as a distance.
 
+#### Exploratory flow direction groups
+
+Select **View Results → Velocity / QC → Dominant flow directions** to compare up to three
+groups from the saved Stage 5 measurements. The top row plots the original east and north
+velocity components in m/year. Colored points show group membership, black diamonds show
+mean velocity vectors, and the lower row shows the same groups at their source locations.
+
+Groups are fitted with deterministic multi-start k-means on unit velocity directions. This
+keeps fast and slow vectors with the same bearing together. Bearings are clockwise from grid
+north. Zero or non-finite speeds have no assigned direction. Each group's displayed bearing is
+a circular mean. Its representative speed is the median of its measured speeds.
+
+The single-direction baseline is displayed alongside candidate splits. The Calinski–Harabasz
+(CH) index ranks feasible two- and three-group splits. It is undefined for one group, and a
+CH winner alone does not establish multiple flow directions. Compare angular spread, separation,
+group counts, and the map. Interpreting groups as separate flow directions requires spatially coherent matches and separation
+that is credible given matching uncertainty. Counts reflect the sampling of accepted matches.
+
+The analysis is saved in `output/05_field_qc/`:
+
+- `06_dominant_flow_directions.png` shows the velocity-space and map views.
+- `flow_direction_candidates.csv` records CH scores, minimum separation between mean bearings
+  and leave-one-out preferences when both splits can be scored. Ties receive no leave-one-out win.
+- `flow_direction_groups.csv` gives each group's counts, circular mean bearing, maximum
+  angular deviation from that mean, speed statistics and mean velocity components.
+- `flow_direction_membership.csv` links each tested partition to the accepted match IDs.
+
+The points used are the actual Stage 5 matches. The gridded affine field is sampled from a fit
+to those matches. The component plot borrows the layout in [Özarpacı et al., Figure 4](https://doi.org/10.1093/gji/ggac326).
+
+To regenerate after opening V1, pass the case folder to the exporter:
+
+```matlab
+v1_plot_flow_direction_groups(fullfile('cases','Glacier_2025_2026'))
+```
+
 ### Stage 6 — flow-aligned affine velocity model
 
 Defines:
