@@ -186,21 +186,22 @@ table stores the full-precision values.
 
 #### Exploratory flow direction groups
 
-Select **View Results → Velocity / QC → Dominant flow directions** to compare up to three
-groups from the saved Stage 5 measurements. The top row plots the original east and north
-velocity components in m/year. Colored points show group membership, and diamonds in the same
-colors show group mean velocities. The lower row shows the groups at their source locations.
+Select **View Results → Velocity / QC → Dominant flow directions** to view the selected bearing
+groups from the saved Stage 5 measurements. The left panel plots east and north velocity
+components in m/year. Colored points show group membership, and diamonds in the same colors
+show group mean velocities. The right panel shows the groups at their source locations.
 
 Groups are fitted with deterministic multi-start k-means on unit velocity directions. This
 keeps fast and slow vectors with the same bearing together. Bearings are clockwise from grid
 north. Zero or non-finite speeds have no assigned direction. Each group's displayed bearing is
 a circular mean. Its representative speed is the median of its measured speeds.
 
-The single-direction baseline is displayed alongside candidate splits. The Calinski–Harabasz
-(CH) index ranks feasible two- and three-group splits. It is undefined for one group, and a
-CH winner alone does not establish multiple flow directions. Compare angular spread, separation,
-group counts, and the map. Interpreting groups as separate flow directions requires spatially coherent matches and separation
-that is credible given matching uncertainty. Counts reflect the sampling of accepted matches.
+The figure shows the feasible two- or three-group split with the highest Calinski–Harabasz (CH)
+score. Ties favor the smaller group count. If neither split can be scored, the figure shows the
+single-direction baseline when bearings are available. The CSV exports retain the candidate
+comparisons. Interpreting a split as separate flow directions requires spatially coherent matches
+and angular separation that is credible given matching uncertainty. Counts reflect the sampling
+of accepted matches.
 
 The analysis is saved in `output/05_field_qc/`:
 
