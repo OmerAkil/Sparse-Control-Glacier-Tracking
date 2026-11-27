@@ -25,11 +25,7 @@ catch ME
     warning('v1:FlowDirectionBackground','Orthomosaic unavailable for direction comparison. %s',ME.message);
 end
 
-% Candidate rows are ordered by k, so the first winner breaks ties toward smaller k.
-k = find(R.Candidates.Best_CH_split,1,'first');
-if isempty(k)
-    k = 1;
-end
+k = R.SelectedK;
 groups = R.Groups(R.Groups.K==k,:);
 membership = R.Membership(:,k);
 
@@ -45,7 +41,7 @@ if any(~R.Usable)
 end
 layout.Subtitle.String = {measurements;notes};
 
-groupColors = [0.00 0.46 0.70; 0.86 0.45 0.06; 0.66 0.22 0.54];
+groupColors = v1_flow_group_colors();
 mapArrowLength = 0.055*max([diff(xLimits),diff(yLimits)]);
 arrowScale = mapArrowLength/max([R.Speed_m_per_year(R.Usable);eps]);
 v = [0 0;velocity(R.Usable,:)];

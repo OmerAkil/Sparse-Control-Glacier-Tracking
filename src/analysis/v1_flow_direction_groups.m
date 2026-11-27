@@ -79,7 +79,14 @@ if numel(tested)==2
     Leave_one_out_comparisons(2:3) = compared;
 end
 
+% Candidate rows are ordered by k, so ties favor the smaller split.
+selectedK = find(Best_CH_split,1,'first');
+if isempty(selectedK)
+    selectedK = 1;
+end
+
 R = struct;
+R.SelectedK = selectedK;
 R.Speed_m_per_year = speed;
 R.Bearing_deg_from_grid_north = bearing;
 R.Usable = usable;

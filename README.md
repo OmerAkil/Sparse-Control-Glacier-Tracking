@@ -253,6 +253,7 @@ output/06_flow_aligned_plane/
     05_partial_along_flow_gradient.png
     06_partial_cross_flow_gradient.png
     07_gridded_velocity_speed_map.png
+    08_gridded_velocity_bearing_zones.png
 ```
 
 The gridded map compares the accepted velocities and the fitted affine velocity field over the
@@ -268,6 +269,19 @@ control extent. To regenerate the map at a chosen spacing after launching V1, ru
 
 ```matlab
 v1_plot_gridded_flow("Glacier_2025_2026",10)  % 10 m grid spacing
+```
+
+Select **View Results → Flow Plane → Gridded bearing zones** to compare the continuous fitted
+bearing with the same grid samples colored by their nearest measured group mean bearing.
+Group selection, counts, and median speeds come from the measured velocities. Measured arrows
+are overlaid on both panels and colored by measured group on the zone panel. The grid samples
+show how the single affine model distributes those bearings within the control hull.
+A color boundary can mark a gradual change that crosses the midpoint between two group bearings.
+
+To regenerate this figure or choose a grid spacing after starting V1, for example:
+
+```matlab
+v1_plot_gridded_bearing_zones(fullfile('cases','Glacier_2025_2026'),10)
 ```
 
 ### Stage 7 — horizontal strain-rate analysis

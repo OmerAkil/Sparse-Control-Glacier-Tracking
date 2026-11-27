@@ -19,37 +19,10 @@ N = T.Epoch1_Y;
 vE = T.vE_m_per_year;
 vN = T.vN_m_per_year;
 
-% Centre the grid and hull at the fitted model origin.
-dE = E-model.E0;
-dN = N-model.N0;
-hull = convhull(dE,dN);
-defaultSpacing = max(max(E)-min(E),max(N)-min(N))/12;
-
 if nargin < 2
-    gridSpacing_m = defaultSpacing;
+    gridSpacing_m = [];
 end
-validateattributes(gridSpacing_m,{'numeric'},{'real','finite','scalar','positive'});
-
-firstCell = ceil([min(dE) min(dN)]/gridSpacing_m);
-lastCell = floor([max(dE) max(dN)]/gridSpacing_m);
-assert(prod(lastCell-firstCell+1) <= 10000, ...
-    'Grid spacing creates more than 10,000 candidate positions. Use a larger spacing.');
-
-[gridE,gridN] = meshgrid( ...
-    (firstCell(1):lastCell(1))*gridSpacing_m, ...
-    (firstCell(2):lastCell(2))*gridSpacing_m);
-gridE = gridE(:);
-gridN = gridN(:);
-inside = inpolygon(gridE,gridN,dE(hull),dN(hull));
-gridE = gridE(inside);
-gridN = gridN(inside);
-
-% Evaluate both fitted components, then rotate velocities back to East/North.
-basis = [model.eAlong; model.eCross];
-design = [ones(numel(gridE),1), [gridE gridN]*basis.'];
-fittedEN = (design*[model.beta model.gamma])*basis;
-gridE = gridE+model.E0;
-gridN = gridN+model.N0;
+[gridXY,fittedEN,hull,gridSpacing_m,defaultSpacing] = v1_sample_flow_grid(model,gridSpacing_m);
 
 run(configFile);
 [Irgb,xVec,yVec,xLimits,yLimits] = v1_flow_map_background(cfg,E,N);
@@ -94,7 +67,7 @@ plot(observed,E(hull),N(hull),'--','Color',hullColor,'LineWidth',1.2);
 hullLine = plot(modeled,E(hull),N(hull),'--','Color',hullColor,'LineWidth',1.2);
 
 draw_arrows(observed,[E N],[vE vN],arrowScale,speedColors,speedLimit);
-draw_arrows(modeled,[gridE gridN],fittedEN,arrowScale,speedColors,speedLimit);
+draw_arrows(modeled,gridXY,fittedEN,arrowScale,speedColors,speedLimit);
 
 scatter(observed,E,N,22,'w','filled','MarkerEdgeColor','k');
 sourceMarkers = scatter(modeled,E,N,22,'w','filled','MarkerEdgeColor','k');
