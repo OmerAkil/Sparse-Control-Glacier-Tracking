@@ -424,7 +424,7 @@ From the GUI:
 4. Enter the two acquisition dates.
 5. Create the project.
 6. Import the trusted-correspondence CSV.
-7. Import the source-point CSV.
+7. Generate source points from Epoch 1 or import a source-point CSV.
 8. Revalidate the project.
 9. Start progressive matching.
 
@@ -468,7 +468,22 @@ Point,Epoch1_X,Epoch1_Y
 
 These points are defined only in the earlier image and will be processed by the progressive matching workflow.
 
-### Epoch 1 source-point pilot
+### Automatic source selection
+
+After importing the trusted correspondences, select **Generate automatically...** in the
+**Source points** panel. The preview proposes up to 12 locations by default. Change the target
+count or draw an ice-area outline to restrict the proposals. Select **Use generated points**
+to save the active `input/source_points.csv`. V1 keeps a backup of any previous list in
+the case's input folder. Generate the list before starting progressive matching.
+
+V1 scores Epoch 1 texture around each prospective point with a Shi–Tomasi gradient measure,
+favoring patches with contrast in two directions. It spreads selections across the area and
+screens for safe initial search bounds, valid source patches on the preview grid, and spacing
+from the trusted seeds. The later raster extent and trusted shifts are used for the search
+bounds. Progressive matching then searches the later image for each proposed point. Keep
+**NO MATCH** outcomes when assessing how many proposals can be tracked.
+
+### Manual Epoch 1 source-point pilot
 
 Start a fresh case and import its trusted correspondences. Select **Pick in Epoch 1...** in the
 **Source points** panel. Choose around 20–30 distinctive features spread across the outlined area.
