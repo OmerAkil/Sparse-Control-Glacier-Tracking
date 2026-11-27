@@ -12,14 +12,14 @@ configFile = fullfile(caseRoot,'case_config.m');
 assert(isfile(modelPath),'Run Stage 6 before generating bearing zones: %s',modelPath);
 assert(isfile(configFile),'Case config not found: %s',configFile);
 
-model = load(modelPath,'FlowTable','E0','N0','eAlong','eCross','beta','gamma','dtDays');
+model = load(modelPath,'FlowTable','E0','N0','eAlong','eCross','beta','gamma','dtDays','dtYears');
 [gridXY,fittedEN,hull,gridSpacing_m,defaultSpacing] = v1_sample_flow_grid(model,gridSpacing_m);
 T = model.FlowTable;
 E = T.Epoch1_X;
 N = T.Epoch1_Y;
 measuredEN = [T.vE_m_per_year,T.vN_m_per_year];
 run(configFile);
-R = v1_flow_direction_groups(measuredEN,cfg.analysis);
+R = v1_case_flow_direction_groups(measuredEN,cfg,model);
 k = R.SelectedK;
 groups = R.Groups(R.Groups.K==k & isfinite(R.Groups.Circular_mean_deg_from_grid_north),:);
 meanBearings = groups.Circular_mean_deg_from_grid_north;

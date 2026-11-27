@@ -4,7 +4,7 @@ function pngPath = v1_plot_flow_direction_groups(caseRoot)
 outRoot = fullfile(caseRoot,'output','05_field_qc');
 stage5Mat = fullfile(outRoot,'field_qc.mat');
 assert(isfile(stage5Mat),'Stage 5 results are missing from %s.',outRoot);
-S = load(stage5Mat,'Master','dtDays');
+S = load(stage5Mat,'Master','dtDays','dtYears');
 T = S.Master;
 velocity = [T.vE_m_per_year,T.vN_m_per_year];
 E = T.Epoch1_X;
@@ -17,18 +17,15 @@ span = max([max(E)-min(E),max(N)-min(N),1]);
 margin = 0.08*span;
 xLimits = [min(E)-margin,max(E)+margin];
 yLimits = [min(N)-margin,max(N)+margin];
-options = struct;
+cfg = struct;
 try
     run(fullfile(caseRoot,'case_config.m'));
-    if isfield(cfg,'analysis')
-        options = cfg.analysis;
-    end
     [Irgb,xVec,yVec,xLimits,yLimits] = v1_flow_map_background(cfg,E,N);
 catch ME
     warning('v1:FlowDirectionBackground','Orthomosaic unavailable for direction comparison. %s',ME.message);
 end
 
-R = v1_flow_direction_groups(velocity,options);
+R = v1_case_flow_direction_groups(velocity,cfg,S);
 k = R.SelectedK;
 groups = R.Groups(R.Groups.K==k,:);
 membership = R.Membership(:,k);

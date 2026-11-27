@@ -196,29 +196,35 @@ keeps fast and slow vectors with the same bearing together. Bearings are clockwi
 north. Zero or non-finite speeds have no assigned direction. Each group's displayed bearing is
 a circular mean. Its representative speed is the median of its measured speeds.
 
-The figures allow a single-direction baseline (`k=1`). By default, a split is eligible when
-every group has at least three measured vectors and every pair of group mean bearings is separated
-by at least 5 degrees. The highest Calinski–Harabasz (CH) score among eligible splits wins, with
-ties favoring the smaller group count. If no split is eligible, the figures use the baseline
-when bearings are available. CH is defined for the two- and three-group candidates.
+The figures allow a single-direction baseline (`k=1`). By default, each group needs at least
+10% of the usable measured vectors, rounded up, with a minimum of three. The angle needed to
+separate two groups is the sum of their bearing half-widths. Each half-width is the largest
+angular deviation from the group's mean after adding each vector's angular localization bound.
+The bound uses twice the Stage 8 per-epoch localization radius and each measured displacement
+length. Shorter displacements have larger angular bounds. When the radius or time interval is
+unavailable, the angle must cover the observed spread and be at least 5 degrees.
 
-The minimum angle and count are screening thresholds. To override the defaults for a case, add
-these settings to its `case_config.m` and adjust the values for that tile:
+The highest Calinski–Harabasz (CH) score among eligible splits wins, with ties favoring the smaller
+group count. If none is eligible, the figures use the baseline when bearings are available.
+These screens use measured vectors. To replace either automatic criterion, add the corresponding
+fixed override to the tile's `case_config.m`:
 
 ```matlab
 cfg.analysis.flow_direction_min_separation_deg = 5;
 cfg.analysis.flow_direction_min_group_count = 3;
 ```
 
-Interpreting a split as separate flow directions still requires spatially coherent matches
-and separation that is credible given matching uncertainty.
+The angle criterion is a conservative screen under the assumed localization radius.
+Interpreting a split as geographic flow zones also requires spatially coherent measurements.
 
 The analysis is saved in `output/05_field_qc/`:
 
 - `06_dominant_flow_directions.png` shows the velocity-space and map views.
 - `flow_direction_candidates.csv` records CH scores, observed separation and counts, required
-  thresholds, split eligibility, and the selected result. It also reports leave-one-out CH
-  preferences when both splits can be scored. Ties receive no leave-one-out win.
+  thresholds, split eligibility, and the selected result. `Required_separation_deg` and
+  `Limiting_pair_separation_deg` refer to the pair with the smallest difference between
+  observed and required separation. The CSV also reports leave-one-out CH preferences when
+  both splits can be scored. Ties receive no leave-one-out win.
 - `flow_direction_groups.csv` gives each group's counts, circular mean bearing, maximum
   angular deviation from that mean, speed statistics and mean velocity components.
 - `flow_direction_membership.csv` links each tested partition to the accepted match IDs.
