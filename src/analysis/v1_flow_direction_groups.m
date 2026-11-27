@@ -1,8 +1,24 @@
-function R = v1_flow_direction_groups(velocityEN)
+function R = v1_flow_direction_groups(velocityEN,options)
 % Compare one, two and three directional groups in measured velocities.
 % Input is an N-by-2 matrix with east and north components in m/year.
 % Groups are fitted to unit directions. Summary speeds use the input vectors.
+% Pass cfg.analysis to override the minimum separation and group count.
 
+if nargin < 2
+    options = struct;
+end
+minSeparation_deg = 5;
+minGroupCount = 3;
+if isfield(options,'flow_direction_min_separation_deg')
+    minSeparation_deg = options.flow_direction_min_separation_deg;
+end
+if isfield(options,'flow_direction_min_group_count')
+    minGroupCount = options.flow_direction_min_group_count;
+end
+validateattributes(minSeparation_deg,{'numeric'},{'real','finite','scalar','>=',0,'<=',180}, ...
+    mfilename,'flow_direction_min_separation_deg');
+validateattributes(minGroupCount,{'numeric'},{'real','finite','scalar','integer','positive'}, ...
+    mfilename,'flow_direction_min_group_count');
 validateattributes(velocityEN,{'numeric'},{'real','2d','ncols',2});
 velocityEN = double(velocityEN);
 speed = hypot(velocityEN(:,1),velocityEN(:,2));
@@ -79,11 +95,19 @@ if numel(tested)==2
     Leave_one_out_comparisons(2:3) = compared;
 end
 
-% Candidate rows are ordered by k, so ties favor the smaller split.
-selectedK = find(Best_CH_split,1,'first');
-if isempty(selectedK)
-    selectedK = 1;
+% CH ranks admissible splits. Retain the one-direction baseline otherwise.
+Split_eligible = ~isnan(CH_score) & Min_bearing_separation_deg>=minSeparation_deg ...
+    & Smallest_group_count>=minGroupCount;
+eligible = find(Split_eligible);
+selectedK = 1;
+if ~isempty(eligible)
+    % Candidate rows are ordered by k, so ties favor the smaller split.
+    [~,best] = max(CH_score(eligible));
+    selectedK = K(eligible(best));
 end
+Selected = (K==selectedK) & n>0;
+Required_separation_deg = repmat(minSeparation_deg,size(K));
+Required_group_count = repmat(minGroupCount,size(K));
 
 R = struct;
 R.SelectedK = selectedK;
@@ -92,7 +116,8 @@ R.Bearing_deg_from_grid_north = bearing;
 R.Usable = usable;
 R.Membership = membership;
 R.Candidates = table(K,CH_score,Smallest_group_count,Min_bearing_separation_deg, ...
-    Best_CH_split,Leave_one_out_wins,Leave_one_out_comparisons);
+    Best_CH_split,Leave_one_out_wins,Leave_one_out_comparisons, ...
+    Required_separation_deg,Required_group_count,Split_eligible,Selected);
 R.Groups = array2table(groupRows,'VariableNames',{ ...
     'K','Group','Count','Circular_mean_deg_from_grid_north','Max_bearing_deviation_deg', ...
     'Median_speed_m_per_year','Min_speed_m_per_year','Max_speed_m_per_year', ...

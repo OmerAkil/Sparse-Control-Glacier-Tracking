@@ -9,7 +9,6 @@ T = S.Master;
 velocity = [T.vE_m_per_year,T.vN_m_per_year];
 E = T.Epoch1_X;
 N = T.Epoch1_Y;
-R = v1_flow_direction_groups(velocity);
 
 % Use the same map background as the gridded-velocity figure. A map of
 % measured locations is still possible when the raster cannot be sampled.
@@ -18,13 +17,18 @@ span = max([max(E)-min(E),max(N)-min(N),1]);
 margin = 0.08*span;
 xLimits = [min(E)-margin,max(E)+margin];
 yLimits = [min(N)-margin,max(N)+margin];
+options = struct;
 try
     run(fullfile(caseRoot,'case_config.m'));
+    if isfield(cfg,'analysis')
+        options = cfg.analysis;
+    end
     [Irgb,xVec,yVec,xLimits,yLimits] = v1_flow_map_background(cfg,E,N);
 catch ME
     warning('v1:FlowDirectionBackground','Orthomosaic unavailable for direction comparison. %s',ME.message);
 end
 
+R = v1_flow_direction_groups(velocity,options);
 k = R.SelectedK;
 groups = R.Groups(R.Groups.K==k,:);
 membership = R.Membership(:,k);
@@ -111,7 +115,7 @@ else
         groups.Circular_mean_deg_from_grid_north,groups.Median_speed_m_per_year,groups.Count);
     legend(velocityAx,points,cellstr(description),'Location','southoutside','FontSize',9);
     if k==1
-        title(velocityAx,'k = 1 | Single-direction baseline');
+        title(velocityAx,'k = 1 | No split meets the criteria');
     else
         title(velocityAx,sprintf('k = %d | CH %.1f',k,R.Candidates.CH_score(k)));
     end
@@ -119,7 +123,6 @@ end
 
 Candidates = R.Candidates;
 Candidates.CH_score = round(Candidates.CH_score,2);
-Candidates.Min_bearing_separation_deg = round(Candidates.Min_bearing_separation_deg,2);
 writetable(Candidates,fullfile(outRoot,'flow_direction_candidates.csv'));
 
 Groups = R.Groups;

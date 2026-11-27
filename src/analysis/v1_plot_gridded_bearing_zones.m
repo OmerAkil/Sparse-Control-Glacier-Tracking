@@ -18,7 +18,8 @@ T = model.FlowTable;
 E = T.Epoch1_X;
 N = T.Epoch1_Y;
 measuredEN = [T.vE_m_per_year,T.vN_m_per_year];
-R = v1_flow_direction_groups(measuredEN);
+run(configFile);
+R = v1_flow_direction_groups(measuredEN,cfg.analysis);
 k = R.SelectedK;
 groups = R.Groups(R.Groups.K==k & isfinite(R.Groups.Circular_mean_deg_from_grid_north),:);
 meanBearings = groups.Circular_mean_deg_from_grid_north;
@@ -38,7 +39,6 @@ end
 bearingOffset = mod(fittedBearing-reference+180,360)-180;
 bearingLimit = max([abs(bearingOffset);1]);
 
-run(configFile);
 [Irgb,xVec,yVec,xLimits,yLimits] = v1_flow_map_background(cfg,E,N);
 
 f = figure('Visible','off','Color','w','Position',[80 80 1500 780]);
@@ -103,7 +103,7 @@ else
     key.Title.String = 'Measured groups: mean bearing, median speed, and count';
 
     if k==1
-        title(zoneAx,'Fitted bearing zones | one-group baseline');
+        title(zoneAx,'k = 1 | No split meets the criteria');
     else
         title(zoneAx,sprintf('Fitted bearing zones | k = %d | CH %.1f', ...
             k,R.Candidates.CH_score(k)));

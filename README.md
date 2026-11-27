@@ -196,18 +196,29 @@ keeps fast and slow vectors with the same bearing together. Bearings are clockwi
 north. Zero or non-finite speeds have no assigned direction. Each group's displayed bearing is
 a circular mean. Its representative speed is the median of its measured speeds.
 
-The figure shows the feasible two- or three-group split with the highest Calinski–Harabasz (CH)
-score. Ties favor the smaller group count. If neither split can be scored, the figure shows the
-single-direction baseline when bearings are available. The CSV exports retain the candidate
-comparisons. Interpreting a split as separate flow directions requires spatially coherent matches
-and angular separation that is credible given matching uncertainty. Counts reflect the sampling
-of accepted matches.
+The figures allow a single-direction baseline (`k=1`). By default, a split is eligible when
+every group has at least three measured vectors and every pair of group mean bearings is separated
+by at least 5 degrees. The highest Calinski–Harabasz (CH) score among eligible splits wins, with
+ties favoring the smaller group count. If no split is eligible, the figures use the baseline
+when bearings are available. CH is defined for the two- and three-group candidates.
+
+The minimum angle and count are screening thresholds. To override the defaults for a case, add
+these settings to its `case_config.m` and adjust the values for that tile:
+
+```matlab
+cfg.analysis.flow_direction_min_separation_deg = 5;
+cfg.analysis.flow_direction_min_group_count = 3;
+```
+
+Interpreting a split as separate flow directions still requires spatially coherent matches
+and separation that is credible given matching uncertainty.
 
 The analysis is saved in `output/05_field_qc/`:
 
 - `06_dominant_flow_directions.png` shows the velocity-space and map views.
-- `flow_direction_candidates.csv` records CH scores, minimum separation between mean bearings
-  and leave-one-out preferences when both splits can be scored. Ties receive no leave-one-out win.
+- `flow_direction_candidates.csv` records CH scores, observed separation and counts, required
+  thresholds, split eligibility, and the selected result. It also reports leave-one-out CH
+  preferences when both splits can be scored. Ties receive no leave-one-out win.
 - `flow_direction_groups.csv` gives each group's counts, circular mean bearing, maximum
   angular deviation from that mean, speed statistics and mean velocity components.
 - `flow_direction_membership.csv` links each tested partition to the accepted match IDs.
@@ -277,6 +288,8 @@ Group selection, counts, and median speeds come from the measured velocities. Me
 are overlaid on both panels and colored by measured group on the zone panel. The grid samples
 show how the single affine model distributes those bearings within the control hull.
 A color boundary can mark a gradual change that crosses the midpoint between two group bearings.
+When the baseline is selected, the fitted bearing panel still shows gradual variation and the
+group panel uses one color.
 
 To regenerate this figure or choose a grid spacing after starting V1, for example:
 
