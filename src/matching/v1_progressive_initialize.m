@@ -65,8 +65,8 @@ assert(all(ismember(requiredTrusted,Trusted.Properties.VariableNames)), ...
 assert(all(ismember(requiredSource,Source.Properties.VariableNames)), ...
     'source_points.csv has an invalid schema.');
 
-trustedIDs = normalize_point_ids(Trusted.Point,'trusted');
-sourceIDs = normalize_point_ids(Source.Point,'source');
+trustedIDs = v1_normalize_point_ids(Trusted.Point,'trusted');
+sourceIDs = v1_normalize_point_ids(Source.Point,'source');
 
 assert(numel(unique(trustedIDs))==height(Trusted), ...
     'Trusted IDs must be unique.');
@@ -152,23 +152,5 @@ fprintf('Initial trusted:  %d\n',height(Trusted));
 fprintf('Source points:    %d\n',height(Source));
 fprintf('Working root:\n%s\n',outRoot);
 fprintf('============================================================\n');
-
-end
-
-function ids = normalize_point_ids(v,label)
-
-if isnumeric(v)
-    ids = double(v(:));
-else
-    s = upper(strtrim(string(v)));
-    s = regexprep(s,'^P','');
-    ids = str2double(s(:));
-end
-
-assert(all(isfinite(ids)), ...
-    '%s Point IDs must be numeric or P-prefixed numeric labels.',label);
-
-assert(all(ids>0 & ids==floor(ids)), ...
-    '%s Point IDs must be positive integers.',label);
 
 end
