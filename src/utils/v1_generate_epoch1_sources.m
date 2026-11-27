@@ -37,7 +37,9 @@ context_m = cfg.stage2.context_m;
 scores = texture_scores(preview,context_m,seedXY);
 refreshPoints();
 f.Visible = 'on';
-uiwait(f);
+% drawpolygon uses its own wait on this figure. Return to V1 once the
+% preview closes, whether the user confirms the points or closes it.
+waitfor(f);
 
     function drawIceArea()
         status.Text = 'Click around the ice area. Double-click to finish or press Esc to cancel.';
@@ -85,7 +87,7 @@ uiwait(f);
 
     function usePoints()
         xy = proposed;
-        uiresume(f);
+        delete(f);
     end
 end
 
