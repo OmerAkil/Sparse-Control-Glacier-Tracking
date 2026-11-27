@@ -36,7 +36,7 @@ layout = tiledlayout(f,2,numel(kToPlot),'TileSpacing','compact','Padding','compa
 title(layout,'Measured glacier velocity groups by bearing');
 measurements = sprintf('%.0f-day interval | %d of %d accepted vectors have a bearing', ...
     S.dtDays,nnz(R.Usable),height(T));
-notes = 'Legend shows mean bearing, median speed, and count. Black diamonds show group mean velocities.';
+notes = 'Legend shows mean bearing, median speed, and count. Diamonds show mean velocities in their group colors.';
 if any(~R.Usable)
     notes = [notes ' Gray crosses show unassigned vectors.'];
 end
@@ -111,7 +111,8 @@ for i = 1:numel(kToPlot)
         title(velocityAx,'No usable bearings');
     else
         scatter(velocityAx,groups.Mean_east_velocity_m_per_year, ...
-            groups.Mean_north_velocity_m_per_year,65,'k','d','filled','MarkerEdgeColor','w');
+            groups.Mean_north_velocity_m_per_year,85,groupColors(groups.Group,:),'d','filled', ...
+            'MarkerEdgeColor',[0.15 0.15 0.15],'LineWidth',1.2);
         description = compose('G%d  %.1f deg | %.1f m/yr | n=%d',groups.Group, ...
             groups.Circular_mean_deg_from_grid_north,groups.Median_speed_m_per_year,groups.Count);
         legend(velocityAx,points,cellstr(description),'Location','southoutside','FontSize',9);
