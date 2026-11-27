@@ -188,8 +188,8 @@ table stores the full-precision values.
 
 Select **View Results → Velocity / QC → Dominant flow directions** to compare up to three
 groups from the saved Stage 5 measurements. The top row plots the original east and north
-velocity components in m/year. Colored points show group membership, black diamonds show
-mean velocity vectors, and the lower row shows the same groups at their source locations.
+velocity components in m/year. Colored points show group membership, and diamonds in the same
+colors show group mean velocities. The lower row shows the groups at their source locations.
 
 Groups are fitted with deterministic multi-start k-means on unit velocity directions. This
 keeps fast and slow vectors with the same bearing together. Bearings are clockwise from grid
