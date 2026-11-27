@@ -540,11 +540,12 @@ showHome();
         a=uilabel(tg,'Text','Required: Point, Epoch1_X, Epoch1_Y, Epoch2_X, Epoch2_Y'); a.Layout.Row=2; a.Layout.Column=[1 3];
 
         sp=uipanel(g,'Title','Source points'); sp.Layout.Row=7; sp.Layout.Column=[1 3];
-        sg=uigridlayout(sp,[2 3]); sg.RowHeight={30,22}; sg.ColumnWidth={'1x',130,130};
+        sg=uigridlayout(sp,[2 4]); sg.RowHeight={30,22}; sg.ColumnWidth={'1x',145,130,130};
         sStatus=uilabel(sg,'Text','Not loaded'); sStatus.Layout.Row=1; sStatus.Layout.Column=1;
-        b=uibutton(sg,'push','Text','Import CSV...','ButtonPushedFcn',@(~,~) importCSV('source')); b.Layout.Row=1; b.Layout.Column=2;
-        sOpen=uibutton(sg,'push','Text','Open current','Enable','off','ButtonPushedFcn',@(~,~) openCSV('source')); sOpen.Layout.Row=1; sOpen.Layout.Column=3;
-        a=uilabel(sg,'Text','Required: Point, Epoch1_X, Epoch1_Y'); a.Layout.Row=2; a.Layout.Column=[1 3];
+        b=uibutton(sg,'push','Text','Pick in Epoch 1...','ButtonPushedFcn',@(~,~) pickSourcePilot()); b.Layout.Row=1; b.Layout.Column=2;
+        b=uibutton(sg,'push','Text','Import CSV...','ButtonPushedFcn',@(~,~) importCSV('source')); b.Layout.Row=1; b.Layout.Column=3;
+        sOpen=uibutton(sg,'push','Text','Open current','Enable','off','ButtonPushedFcn',@(~,~) openCSV('source')); sOpen.Layout.Row=1; sOpen.Layout.Column=4;
+        a=uilabel(sg,'Text','Required: Point, Epoch1_X, Epoch1_Y'); a.Layout.Row=2; a.Layout.Column=[1 4];
 
         b=uibutton(g,'push','Text','Revalidate Project','ButtonPushedFcn',@(~,~) refreshInputs(true)); b.Layout.Row=8; b.Layout.Column=2;
 
@@ -589,6 +590,53 @@ showHome();
         statusBox.Layout.Column=[1 3];
 
         refreshInputs(false);
+
+        function pickSourcePilot()
+            caseRoot=char(S.caseRoot);
+            try
+                assert(~isfolder(fullfile(caseRoot,'output','01_progressive_matching')), ...
+                    'Open a fresh case before picking pilot points. A matching session already exists for this case.');
+                trustedFile=fullfile(caseRoot,'input','trusted_correspondences.csv');
+                Trusted=readtable(trustedFile,'TextType','string');
+                validateTrusted(Trusted,S.epoch1Info,S.epoch2Info);
+                seedIDs=str2double(regexprep(strtrim(string(Trusted.Point)),'^[Pp]',''));
+                assert(all(isfinite(seedIDs) & seedIDs>=1 & seedIDs==fix(seedIDs)) && ...
+                    numel(unique(seedIDs))==height(Trusted), ...
+                    'Trusted Point IDs must be unique positive integers, optionally prefixed by P.');
+
+                seedXY=[numcol(Trusted,'Epoch1_X'),numcol(Trusted,'Epoch1_Y')];
+                seedShift=[numcol(Trusted,'Epoch2_X'),numcol(Trusted,'Epoch2_Y')]-seedXY;
+                cfgLocal=readConfig(fullfile(caseRoot,'case_config.m'));
+                [xy,dropped]=v1_pick_epoch1_sources(S.epoch1Info,S.epoch2Info.Ref,cfgLocal,seedXY,seedShift);
+                if isempty(xy)
+                    if dropped>0
+                        uialert(fig,'Select points inside the outlined area and away from seed markers.', ...
+                            'No usable pilot points');
+                    end
+                    return
+                end
+
+                Point=max(seedIDs)+(1:size(xy,1)).';
+                Source=table(Point,xy(:,1),xy(:,2),'VariableNames',{'Point','Epoch1_X','Epoch1_Y'});
+                pilotDir=fullfile(caseRoot,'output','00_epoch1_source_pilot');
+                if ~isfolder(pilotDir)
+                    [ok,msg]=mkdir(pilotDir);
+                    assert(ok,'Could not create the pilot output folder: %s',msg);
+                end
+                [~,suffix]=fileparts(tempname(pilotDir));
+                csvPath=fullfile(pilotDir,['source_points_epoch1_' suffix '.csv']);
+                writetable(Source,csvPath);
+                msg=sprintf(['Exported %d points to:\n%s\n\n' ...
+                    'Select Import CSV in the Source points panel to use this list.'],height(Source),csvPath);
+                if dropped>0
+                    msg=sprintf('%s\n\n%d picks were outside the usable area, on missing pixels, or near another point.', ...
+                        msg,dropped);
+                end
+                uialert(fig,msg,'Epoch 1 pilot points exported','Icon','success');
+            catch ME
+                uialert(fig,ME.message,'Epoch 1 source selection failed');
+            end
+        end
 
         function importCSV(kind)
             [f,p]=uigetfile({'*.csv','CSV files (*.csv)'},['Import ' kind ' CSV']); if isequal(f,0), return; end
