@@ -1,5 +1,5 @@
 function pngPath = v1_plot_flow_direction_groups(caseRoot)
-% Write the direction comparison from the full-precision Stage 5 vectors.
+% Plot the selected bearing groups from the full-precision Stage 5 vectors.
 
 outRoot = fullfile(caseRoot,'output','05_field_qc');
 stage5Mat = fullfile(outRoot,'field_qc.mat');
@@ -25,14 +25,17 @@ catch ME
     warning('v1:FlowDirectionBackground','Orthomosaic unavailable for direction comparison. %s',ME.message);
 end
 
-kToPlot = find(any(isfinite(R.Membership),1));
-if isempty(kToPlot)
-    kToPlot = 1;
+% Candidate rows are ordered by k, so the first winner breaks ties toward smaller k.
+k = find(R.Candidates.Best_CH_split,1,'first');
+if isempty(k)
+    k = 1;
 end
+groups = R.Groups(R.Groups.K==k,:);
+membership = R.Membership(:,k);
 
-f = figure('Visible','off','Color','w','Position',[60 60 1550 1050]);
+f = figure('Visible','off','Color','w','Position',[60 60 1200 680]);
 cleanup = onCleanup(@() close(f)); %#ok<NASGU>
-layout = tiledlayout(f,2,numel(kToPlot),'TileSpacing','compact','Padding','compact');
+layout = tiledlayout(f,1,2,'TileSpacing','compact','Padding','compact');
 title(layout,'Measured glacier velocity groups by bearing');
 measurements = sprintf('%.0f-day interval | %d of %d accepted vectors have a bearing', ...
     S.dtDays,nnz(R.Usable),height(T));
@@ -49,78 +52,72 @@ v = [0 0;velocity(R.Usable,:)];
 center = (min(v,[],1)+max(v,[],1))/2;
 halfSpan = 0.56*max([max(v,[],1)-min(v,[],1),eps]);
 
-for i = 1:numel(kToPlot)
-    k = kToPlot(i);
-    groups = R.Groups(R.Groups.K==k,:);
-    membership = R.Membership(:,k);
+velocityAx = nexttile(layout,1);
+hold(velocityAx,'on');
+box(velocityAx,'on');
+grid(velocityAx,'on');
+axis(velocityAx,'equal');
+xlim(velocityAx,center(1)+[-halfSpan halfSpan]);
+ylim(velocityAx,center(2)+[-halfSpan halfSpan]);
+xline(velocityAx,0,':','Color',[0.55 0.55 0.55]);
+yline(velocityAx,0,':','Color',[0.55 0.55 0.55]);
+xlabel(velocityAx,'East velocity (m/yr)');
+ylabel(velocityAx,'North velocity (m/yr)');
 
-    velocityAx = nexttile(layout,i);
-    hold(velocityAx,'on');
-    box(velocityAx,'on');
-    grid(velocityAx,'on');
-    axis(velocityAx,'equal');
-    xlim(velocityAx,center(1)+[-halfSpan halfSpan]);
-    ylim(velocityAx,center(2)+[-halfSpan halfSpan]);
-    xline(velocityAx,0,':','Color',[0.55 0.55 0.55]);
-    yline(velocityAx,0,':','Color',[0.55 0.55 0.55]);
-    xlabel(velocityAx,'East velocity (m/yr)');
-    ylabel(velocityAx,'North velocity (m/yr)');
+mapAx = nexttile(layout,2);
+if isempty(Irgb)
+    title(mapAx,'Accepted match locations (no orthomosaic)');
+else
+    image(mapAx,xVec,yVec,Irgb);
+    title(mapAx,'Accepted match locations');
+end
+set(mapAx,'YDir','normal');
+axis(mapAx,'image');
+xlim(mapAx,xLimits);
+ylim(mapAx,yLimits);
+hold(mapAx,'on');
+box(mapAx,'on');
+mapAx.XAxis.Exponent = 0;
+mapAx.YAxis.Exponent = 0;
+xlabel(mapAx,'Easting (m)');
+ylabel(mapAx,'Northing (m)');
 
-    mapAx = nexttile(layout,numel(kToPlot)+i);
-    if isempty(Irgb)
-        title(mapAx,'Accepted match locations (no orthomosaic)');
+unassigned = ~R.Usable;
+if any(unassigned)
+    plot(mapAx,E(unassigned),N(unassigned),'x','Color',[0.45 0.45 0.45]);
+    onVelocityPlot = unassigned & all(isfinite(velocity),2);
+    plot(velocityAx,velocity(onVelocityPlot,1),velocity(onVelocityPlot,2), ...
+        'x','Color',[0.45 0.45 0.45]);
+end
+
+points = gobjects(height(groups),1);
+for g = 1:height(groups)
+    inGroup = membership==g;
+    color = groupColors(g,:);
+    points(g) = scatter(velocityAx,velocity(inGroup,1),velocity(inGroup,2), ...
+        42,color,'filled','MarkerEdgeColor',[0.15 0.15 0.15]);
+    u = arrowScale*velocity(inGroup,:);
+    quiver(mapAx,E(inGroup),N(inGroup),u(:,1),u(:,2),0, ...
+        'Color',[0.08 0.09 0.12],'LineWidth',2.7,'MaxHeadSize',0.55);
+    quiver(mapAx,E(inGroup),N(inGroup),u(:,1),u(:,2),0, ...
+        'Color',color,'LineWidth',1.5,'MaxHeadSize',0.55);
+    scatter(mapAx,E(inGroup),N(inGroup),24,color,'filled', ...
+        'MarkerEdgeColor',[0.08 0.09 0.12]);
+end
+
+if isempty(groups)
+    title(velocityAx,'No usable bearings');
+else
+    scatter(velocityAx,groups.Mean_east_velocity_m_per_year, ...
+        groups.Mean_north_velocity_m_per_year,85,groupColors(groups.Group,:),'d','filled', ...
+        'MarkerEdgeColor',[0.15 0.15 0.15],'LineWidth',1.2);
+    description = compose('G%d  %.1f deg | %.1f m/yr | n=%d',groups.Group, ...
+        groups.Circular_mean_deg_from_grid_north,groups.Median_speed_m_per_year,groups.Count);
+    legend(velocityAx,points,cellstr(description),'Location','southoutside','FontSize',9);
+    if k==1
+        title(velocityAx,'k = 1 | Single-direction baseline');
     else
-        image(mapAx,xVec,yVec,Irgb);
-        title(mapAx,'Accepted match locations');
-    end
-    set(mapAx,'YDir','normal');
-    axis(mapAx,'image');
-    xlim(mapAx,xLimits);
-    ylim(mapAx,yLimits);
-    hold(mapAx,'on');
-    box(mapAx,'on');
-    mapAx.XAxis.Exponent = 0;
-    mapAx.YAxis.Exponent = 0;
-    xlabel(mapAx,'Easting (m)');
-    ylabel(mapAx,'Northing (m)');
-
-    unassigned = ~R.Usable;
-    if any(unassigned)
-        plot(mapAx,E(unassigned),N(unassigned),'x','Color',[0.45 0.45 0.45]);
-        onVelocityPlot = unassigned & all(isfinite(velocity),2);
-        plot(velocityAx,velocity(onVelocityPlot,1),velocity(onVelocityPlot,2), ...
-            'x','Color',[0.45 0.45 0.45]);
-    end
-
-    points = gobjects(height(groups),1);
-    for g = 1:height(groups)
-        inGroup = membership==g;
-        color = groupColors(g,:);
-        points(g) = scatter(velocityAx,velocity(inGroup,1),velocity(inGroup,2), ...
-            42,color,'filled','MarkerEdgeColor',[0.15 0.15 0.15]);
-        u = arrowScale*velocity(inGroup,:);
-        quiver(mapAx,E(inGroup),N(inGroup),u(:,1),u(:,2),0, ...
-            'Color',[0.08 0.09 0.12],'LineWidth',2.7,'MaxHeadSize',0.55);
-        quiver(mapAx,E(inGroup),N(inGroup),u(:,1),u(:,2),0, ...
-            'Color',color,'LineWidth',1.5,'MaxHeadSize',0.55);
-        scatter(mapAx,E(inGroup),N(inGroup),24,color,'filled', ...
-            'MarkerEdgeColor',[0.08 0.09 0.12]);
-    end
-
-    if isempty(groups)
-        title(velocityAx,'No usable bearings');
-    else
-        scatter(velocityAx,groups.Mean_east_velocity_m_per_year, ...
-            groups.Mean_north_velocity_m_per_year,85,groupColors(groups.Group,:),'d','filled', ...
-            'MarkerEdgeColor',[0.15 0.15 0.15],'LineWidth',1.2);
-        description = compose('G%d  %.1f deg | %.1f m/yr | n=%d',groups.Group, ...
-            groups.Circular_mean_deg_from_grid_north,groups.Median_speed_m_per_year,groups.Count);
-        legend(velocityAx,points,cellstr(description),'Location','southoutside','FontSize',9);
-        if k==1
-            title(velocityAx,'k = 1 | Single-direction baseline');
-        else
-            title(velocityAx,sprintf('k = %d | CH %.1f',k,R.Candidates.CH_score(k)));
-        end
+        title(velocityAx,sprintf('k = %d | CH %.1f',k,R.Candidates.CH_score(k)));
     end
 end
 
