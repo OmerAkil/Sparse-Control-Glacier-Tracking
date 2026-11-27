@@ -483,19 +483,6 @@ from the trusted seeds. The later raster extent and trusted shifts are used for 
 bounds. Progressive matching then searches the later image for each proposed point. Keep
 **NO MATCH** outcomes when assessing how many proposals can be tracked.
 
-### Manual Epoch 1 source-point pilot
-
-Start a fresh case and import its trusted correspondences. Select **Pick in Epoch 1...** in the
-**Source points** panel. Choose around 20–30 distinctive features spread across the outlined area.
-Magenta crosses mark the existing seeds. Backspace undoes a pick and Enter finishes the selection.
-
-The picker displays the earlier image. The later raster extent and the initial seed displacements
-are used to leave room for the first matching search and review windows. Picks outside the
-outline, on known missing preview pixels, or within one native pixel of another point are omitted.
-The exported pilot CSV is saved under `output/00_epoch1_source_pilot/` with its own filename.
-Import that CSV under **Source points** and start progressive matching. Keep every matching outcome,
-including **NO MATCH**, when evaluating the pilot.
-
 ### Point identifiers
 
 Point identifiers must be:

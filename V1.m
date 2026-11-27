@@ -540,13 +540,12 @@ showHome();
         a=uilabel(tg,'Text','Required: Point, Epoch1_X, Epoch1_Y, Epoch2_X, Epoch2_Y'); a.Layout.Row=2; a.Layout.Column=[1 3];
 
         sp=uipanel(g,'Title','Source points'); sp.Layout.Row=7; sp.Layout.Column=[1 3];
-        sg=uigridlayout(sp,[2 5]); sg.RowHeight={30,22}; sg.ColumnWidth={'1x',170,135,112,110};
+        sg=uigridlayout(sp,[2 4]); sg.RowHeight={30,22}; sg.ColumnWidth={'1x',170,130,130};
         sStatus=uilabel(sg,'Text','Not loaded'); sStatus.Layout.Row=1; sStatus.Layout.Column=1;
-        b=uibutton(sg,'push','Text','Generate automatically...','ButtonPushedFcn',@(~,~) selectEpoch1Sources(true)); b.Layout.Row=1; b.Layout.Column=2;
-        b=uibutton(sg,'push','Text','Pick in Epoch 1...','ButtonPushedFcn',@(~,~) selectEpoch1Sources(false)); b.Layout.Row=1; b.Layout.Column=3;
-        b=uibutton(sg,'push','Text','Import CSV...','ButtonPushedFcn',@(~,~) importCSV('source')); b.Layout.Row=1; b.Layout.Column=4;
-        sOpen=uibutton(sg,'push','Text','Open current','Enable','off','ButtonPushedFcn',@(~,~) openCSV('source')); sOpen.Layout.Row=1; sOpen.Layout.Column=5;
-        a=uilabel(sg,'Text','Required: Point, Epoch1_X, Epoch1_Y'); a.Layout.Row=2; a.Layout.Column=[1 5];
+        b=uibutton(sg,'push','Text','Generate automatically...','ButtonPushedFcn',@(~,~) generateEpoch1Sources()); b.Layout.Row=1; b.Layout.Column=2;
+        b=uibutton(sg,'push','Text','Import CSV...','ButtonPushedFcn',@(~,~) importCSV('source')); b.Layout.Row=1; b.Layout.Column=3;
+        sOpen=uibutton(sg,'push','Text','Open current','Enable','off','ButtonPushedFcn',@(~,~) openCSV('source')); sOpen.Layout.Row=1; sOpen.Layout.Column=4;
+        a=uilabel(sg,'Text','Required: Point, Epoch1_X, Epoch1_Y'); a.Layout.Row=2; a.Layout.Column=[1 4];
 
         b=uibutton(g,'push','Text','Revalidate Project','ButtonPushedFcn',@(~,~) refreshInputs(true)); b.Layout.Row=8; b.Layout.Column=2;
 
@@ -592,7 +591,7 @@ showHome();
 
         refreshInputs(false);
 
-        function selectEpoch1Sources(automatic)
+        function generateEpoch1Sources()
             caseRoot=char(S.caseRoot);
             sessionDir=fullfile(caseRoot,'output','01_progressive_matching');
             try
@@ -609,46 +608,18 @@ showHome();
                 seedXY=[numcol(Trusted,'Epoch1_X'),numcol(Trusted,'Epoch1_Y')];
                 seedShift=[numcol(Trusted,'Epoch2_X'),numcol(Trusted,'Epoch2_Y')]-seedXY;
                 cfgLocal=readConfig(fullfile(caseRoot,'case_config.m'));
-                dropped=0;
-                if automatic
-                    xy=v1_generate_epoch1_sources(S.epoch1Info,S.epoch2Info.Ref,cfgLocal,seedXY,seedShift);
-                else
-                    [xy,dropped]=v1_pick_epoch1_sources(S.epoch1Info,S.epoch2Info.Ref,cfgLocal,seedXY,seedShift);
-                end
+                xy=v1_generate_epoch1_sources(S.epoch1Info,S.epoch2Info.Ref,cfgLocal,seedXY,seedShift);
                 if isempty(xy)
-                    if dropped>0
-                        uialert(fig,'Select points inside the outlined area and away from seed markers.', ...
-                            'No usable pilot points');
-                    end
                     return
                 end
 
                 Point=max(seedIDs)+(1:size(xy,1)).';
                 Source=table(Point,xy(:,1),xy(:,2),'VariableNames',{'Point','Epoch1_X','Epoch1_Y'});
-                if automatic
-                    assert(~isfolder(sessionDir),'A matching session already uses this case''s source points.');
-                    csvPath=saveGeneratedSources(caseRoot,Source);
-                    refreshInputs(false);
-                    uialert(fig,sprintf('Ready to match %d generated points.\n\n%s',height(Source),csvPath), ...
-                        'Source points generated','Icon','success');
-                    return
-                end
-
-                pilotDir=fullfile(caseRoot,'output','00_epoch1_source_pilot');
-                if ~isfolder(pilotDir)
-                    [ok,msg]=mkdir(pilotDir);
-                    assert(ok,'Could not create the pilot output folder: %s',msg);
-                end
-                [~,suffix]=fileparts(tempname(pilotDir));
-                csvPath=fullfile(pilotDir,['source_points_epoch1_' suffix '.csv']);
-                writetable(Source,csvPath);
-                msg=sprintf(['Exported %d points to:\n%s\n\n' ...
-                    'Select Import CSV in the Source points panel to use this list.'],height(Source),csvPath);
-                if dropped>0
-                    msg=sprintf('%s\n\n%d picks were outside the usable area, on missing pixels, or near another point.', ...
-                        msg,dropped);
-                end
-                uialert(fig,msg,'Epoch 1 pilot points exported','Icon','success');
+                assert(~isfolder(sessionDir),'A matching session already uses this case''s source points.');
+                csvPath=saveGeneratedSources(caseRoot,Source);
+                refreshInputs(false);
+                uialert(fig,sprintf('Ready to match %d generated points.\n\n%s',height(Source),csvPath), ...
+                    'Source points generated','Icon','success');
             catch ME
                 uialert(fig,ME.message,'Epoch 1 source selection failed');
             end
